@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🎮 Game Studio — AI Producer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080b;--bg2:#0d0f15;--bg3:#12151e;--bg4:#181c28;--bg5:#1e2333;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);--border3:rgba(255,255,255,0.18);
+  --text:#dde0ea;--text2:#7e8699;--text3:#3d4358;
+  --amber:#f5a623;--amber2:#ffd080;--amber3:rgba(245,166,35,0.12);
+  --teal:#1de8b0;--teal2:#0fb88a;--teal3:rgba(29,232,176,0.1);
+  --blue:#4d8ef5;--blue2:#7ab0ff;--blue3:rgba(77,142,245,0.1);
+  --coral:#ff6b6b;--coral3:rgba(255,107,107,0.1);
+  --purple:#9b7fff;--purple2:#b49dff;--purple3:rgba(155,127,255,0.1);
+  --green:#6bcb77;--green3:rgba(107,203,119,0.1);
+  --pink:#ff7eb3;
+  --font:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+
+/* ═══ SETUP ═══ */
+#setup{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;background:radial-gradient(ellipse at 50% 0%,rgba(155,127,255,0.06) 0%,transparent 60%);}
+.setup-logo{font-size:52px;margin-bottom:10px;filter:drop-shadow(0 0 20px rgba(245,166,35,0.3));}
+.setup-title{font-size:clamp(24px,5vw,38px);font-weight:800;letter-spacing:3px;color:var(--amber2);margin-bottom:4px;}
+.setup-sub{font-size:11px;color:var(--text3);letter-spacing:4px;margin-bottom:44px;font-family:var(--mono);}
+.setup-card{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:36px;width:100%;max-width:500px;}
+.setup-card h2{font-size:11px;color:var(--text3);letter-spacing:3px;margin-bottom:28px;font-family:var(--mono);}
+.field{margin-bottom:20px;}
+.field label{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:8px;font-family:var(--mono);}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:var(--mono);font-size:13px;padding:13px 16px;outline:none;transition:border-color .2s;}
+.field input:focus{border-color:var(--amber);}
+.field input::placeholder{color:var(--text3);}
+.field .hint{font-size:10px;color:var(--text3);margin-top:6px;font-family:var(--mono);line-height:1.5;}
+.badge-opt{background:var(--bg4);border:1px solid var(--border);color:var(--text3);font-size:9px;padding:2px 7px;border-radius:20px;font-family:var(--mono);}
+.btn-start{width:100%;background:var(--amber);color:#000;border:none;border-radius:9px;padding:15px;font-family:var(--font);font-size:14px;font-weight:800;letter-spacing:2px;cursor:pointer;margin-top:6px;transition:all .2s;}
+.btn-start:hover{background:var(--amber2);transform:translateY(-1px);}
+
+/* ═══ APP SHELL ═══ */
+#app{display:none;flex-direction:column;height:100vh;overflow:hidden;}
+
+/* TOP NAV */
+.topnav{display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;height:50px;flex-shrink:0;overflow-x:auto;gap:4px;}
+.topnav-logo{font-size:16px;font-weight:800;color:var(--amber2);letter-spacing:1px;margin-right:20px;white-space:nowrap;flex-shrink:0;}
+.nav-tab{background:none;border:none;color:var(--text3);font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:1px;padding:0 14px;height:50px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.nav-tab:hover{color:var(--text2);}
+.nav-tab.active{color:var(--amber);border-bottom-color:var(--amber);}
+.nav-badge{background:var(--coral);color:#fff;font-size:9px;font-weight:700;border-radius:20px;padding:1px 6px;font-family:var(--mono);}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.btn-reunion{background:var(--purple3);border:1px solid var(--purple);color:var(--purple2);border-radius:7px;padding:7px 14px;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;}
+.btn-reunion:hover{background:var(--purple);color:#fff;}
+.btn-settings{background:none;border:1px solid var(--border);color:var(--text3);border-radius:7px;padding:7px 10px;cursor:pointer;font-size:14px;transition:all .2s;}
+.btn-settings:hover{border-color:var(--border2);color:var(--text2);}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;}
+
+/* ═══ SALA PRODUCER ═══ */
+#sala-producer{padding:20px;display:none;}
+#sala-producer.active{display:block;}
+
+.producer-top{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+@media(max-width:600px){.producer-top{grid-template-columns:1fr;}}
+
+.producer-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.producer-card h3{font-size:10px;color:var(--text3);letter-spacing:2px;font-family:var(--mono);margin-bottom:16px;}
+
+/* Producer status */
+.producer-status-box{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.producer-av{width:52px;height:52px;border-radius:14px;background:var(--purple3);border:1px solid var(--purple);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.producer-info h2{font-size:16px;font-weight:800;color:var(--text);}
+.producer-info p{font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:3px;}
+.producer-thinking{font-size:11px;color:var(--amber);font-family:var(--mono);margin-top:8px;min-height:18px;}
+.producer-thinking.idle{color:var(--text3);}
+
+/* Stats */
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;}
+.stat{background:var(--bg3);border-radius:10px;padding:12px 16px;flex:1;min-width:80px;}
+.stat-val{font-size:22px;font-weight:800;color:var(--text);font-family:var(--mono);}
+.stat-label{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;letter-spacing:1px;}
+
+/* Upload */
+.upload-zone{background:var(--bg3);border:1.5px dashed var(--border2);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;}
+.upload-zone:hover{border-color:var(--amber);}
+.upload-zone.loaded{border-color:var(--teal);border-style:solid;}
+.upload-zone h4{font-size:12px;color:var(--text2);margin-bottom:3px;}
+.upload-zone p{font-size:10px;color:var(--text3);font-family:var(--mono);}
+#file-input{display:none;}
+.btn-launch{width:100%;background:var(--amber);color:#000;border:none;border-radius:9px;padding:12px;font-family:var(--font);font-size:12px;font-weight:800;letter-spacing:2px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-launch:hover{background:var(--amber2);}
+.btn-launch:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed;}
+
+/* Task pipeline */
+.pipeline-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;}
+.pipeline-section h3{font-size:10px;color:var(--text3);letter-spacing:2px;font-family:var(--mono);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.pipeline-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:700px){.pipeline-cols{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:400px){.pipeline-cols{grid-template-columns:1fr;}}
+
+.pipeline-col{background:var(--bg3);border-radius:10px;padding:12px;min-height:80px;}
+.pipeline-col-title{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.pipeline-col-title span{background:var(--bg4);border-radius:20px;padding:1px 7px;font-size:9px;}
+.task-chip{background:var(--bg4);border:1px solid var(--border);border-radius:7px;padding:8px 10px;margin-bottom:7px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .2s;position:relative;}
+.task-chip:hover{border-color:var(--border2);color:var(--text);}
+.task-chip .tc-title{font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.3;}
+.task-chip .tc-agent{font-size:9px;color:var(--text3);font-family:var(--mono);}
+.task-chip .tc-size{position:absolute;top:8px;right:8px;font-size:9px;font-family:var(--mono);padding:1px 6px;border-radius:20px;}
+.size-chica{background:var(--teal3);color:var(--teal);}
+.size-grande{background:var(--amber3);color:var(--amber);}
+.task-chip.status-pending{border-left:2px solid var(--text3);}
+.task-chip.status-plan-review{border-left:2px solid var(--amber);background:var(--amber3);}
+.task-chip.status-running{border-left:2px solid var(--blue);background:var(--blue3);}
+.task-chip.status-validating{border-left:2px solid var(--purple);background:var(--purple3);}
+.task-chip.status-done{border-left:2px solid var(--teal);background:var(--teal3);}
+.task-chip.status-rejected{border-left:2px solid var(--coral);background:var(--coral3);}
+
+/* Agentes grid */
+.agentes-section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;}
+.agentes-section h3{font-size:10px;color:var(--text3);letter-spacing:2px;font-family:var(--mono);margin-bottom:16px;}
+.agentes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;}
+.agente-card{background:var(--bg3);border:1px solid var(--border);border-radius:11px;overflow:hidden;transition:border-color .2s;}
+.agente-card:hover{border-color:var(--border2);}
+.agente-header{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.agente-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.agente-name{font-size:12px;font-weight:700;color:var(--text);}
+.agente-role{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;}
+.agente-st{display:flex;align-items:center;gap:5px;font-size:9px;font-family:var(--mono);margin-left:auto;}
+.st-dot{width:6px;height:6px;border-radius:50%;}
+.st-idle .st-dot{background:var(--text3);}
+.st-busy .st-dot{background:var(--amber);animation:pulse 1s infinite;}
+.st-done .st-dot{background:var(--teal);}
+.st-idle{color:var(--text3);}
+.st-busy{color:var(--amber);}
+.st-done{color:var(--teal);}
+.agente-body{padding:10px 14px;min-height:60px;}
+.agente-log{font-size:10px;font-family:var(--mono);color:var(--text3);line-height:1.7;}
+.log-new{color:var(--text2);}
+.log-find{color:var(--amber);}
+.log-ok{color:var(--teal);}
+.log-err{color:var(--coral);}
+.agente-task{padding:8px 14px;border-top:1px solid var(--border);font-size:10px;font-family:var(--mono);}
+.agente-task-label{color:var(--text3);}
+.agente-task-name{color:var(--blue2);}
+
+/* ═══ APROBACIONES ═══ */
+#sala-aprobaciones{padding:20px;display:none;}
+#sala-aprobaciones.active{display:block;}
+.aprob-list{display:flex;flex-direction:column;gap:14px;}
+.aprob-card{background:var(--bg2);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.aprob-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;}
+.aprob-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.aprob-meta{flex:1;min-width:0;}
+.aprob-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.aprob-from{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.aprob-badge{font-size:9px;font-family:var(--mono);padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.badge-plan{background:var(--amber3);color:var(--amber);border:1px solid rgba(245,166,35,0.3);}
+.badge-result{background:var(--teal3);color:var(--teal);border:1px solid rgba(29,232,176,0.3);}
+.badge-alta{background:var(--coral3);color:var(--coral);border:1px solid rgba(255,107,107,0.3);}
+.badge-media{background:var(--amber3);color:var(--amber);border:1px solid rgba(245,166,35,0.3);}
+.badge-baja{background:var(--green3);color:var(--green);border:1px solid rgba(107,203,119,0.3);}
+.aprob-body{padding:14px 18px;}
+.aprob-desc{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
+.aprob-plan-items{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
+.plan-item{background:var(--bg3);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.plan-item-num{font-size:11px;color:var(--text3);font-family:var(--mono);width:20px;flex-shrink:0;}
+.plan-item-text{font-size:11px;color:var(--text2);flex:1;}
+.plan-item-agent{font-size:9px;color:var(--text3);font-family:var(--mono);}
+.aprob-code{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:10px;font-family:var(--mono);color:var(--teal);overflow-x:auto;white-space:pre;line-height:1.6;max-height:200px;overflow-y:auto;}
+.aprob-actions{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;}
+.btn-ok{background:var(--teal);color:#000;border:none;border-radius:8px;padding:10px 22px;font-family:var(--font);font-size:12px;font-weight:800;letter-spacing:1px;cursor:pointer;transition:all .2s;flex:1;min-width:120px;}
+.btn-ok:hover{background:var(--teal2);}
+.btn-no{background:none;border:1px solid var(--coral);color:var(--coral);border-radius:8px;padding:10px 18px;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;}
+.btn-no:hover{background:var(--coral3);}
+.btn-edit{background:none;border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:10px 14px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-edit:hover{border-color:var(--blue2);color:var(--blue2);}
+.empty-state{text-align:center;padding:70px 20px;color:var(--text3);}
+.empty-state .ei{font-size:44px;margin-bottom:14px;}
+.empty-state h3{font-size:14px;color:var(--text2);margin-bottom:6px;}
+.empty-state p{font-size:11px;font-family:var(--mono);line-height:1.6;}
+
+/* ═══ HISTORIAL ═══ */
+#sala-historial{padding:20px;display:none;}
+#sala-historial.active{display:block;}
+.hist-list{display:flex;flex-direction:column;gap:9px;}
+.hist-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;}
+.hist-av{font-size:18px;width:30px;text-align:center;flex-shrink:0;}
+.hist-content{flex:1;min-width:0;}
+.hist-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.hist-meta{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.tag{font-size:9px;font-family:var(--mono);padding:3px 9px;border-radius:20px;}
+.tag-ok{background:var(--teal3);color:var(--teal);}
+.tag-no{background:var(--coral3);color:var(--coral);}
+
+/* ═══ REUNION MODAL ═══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;align-items:flex-end;justify-content:center;padding:0;}
+.modal-overlay.open{display:flex;}
+@media(min-width:600px){.modal-overlay{align-items:center;padding:20px;}}
+.reunion-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px 20px 0 0;width:100%;max-width:680px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+@media(min-width:600px){.reunion-modal{border-radius:20px;max-height:85vh;}}
+.reunion-hd{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.reunion-hd h2{font-size:15px;font-weight:800;color:var(--purple2);}
+.reunion-hd p{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.btn-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px;line-height:1;}
+.btn-close:hover{color:var(--text);}
+.reunion-asistentes{padding:12px 22px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;}
+.asistente-chip{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;}
+.ac-av{font-size:16px;}
+.ac-name{font-size:11px;font-weight:700;color:var(--text);}
+.ac-role{font-size:9px;color:var(--text3);font-family:var(--mono);}
+.reunion-chat{flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:10px;min-height:180px;}
+.msg{display:flex;gap:10px;align-items:flex-start;}
+.msg.sys{justify-content:center;}
+.msg.sys .mb{background:var(--bg4);color:var(--text3);font-size:10px;font-family:var(--mono);padding:5px 14px;border-radius:20px;}
+.msg-av{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.msg-inner{flex:1;min-width:0;}
+.msg-name{font-size:9px;color:var(--text3);font-family:var(--mono);margin-bottom:3px;}
+.mb{background:var(--bg3);border-radius:0 9px 9px 9px;padding:10px 14px;font-size:12px;color:var(--text);line-height:1.6;}
+.msg.user .mb{background:var(--bg4);border:1px solid var(--border2);border-radius:9px 0 9px 9px;}
+.msg.typing .mb{color:var(--text3);}
+.typing-dots span{display:inline-block;animation:tdot 1.2s infinite;width:4px;height:4px;background:var(--text3);border-radius:50%;margin:0 1px;}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,80%,100%{transform:scale(.8);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+.reunion-input-area{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;}
+.reunion-input-area textarea{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 14px;resize:none;height:44px;outline:none;transition:border-color .2s;}
+.reunion-input-area textarea:focus{border-color:var(--purple);}
+.btn-send{background:var(--purple);color:#fff;border:none;border-radius:9px;width:44px;height:44px;font-size:18px;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.btn-send:hover{background:var(--purple2);}
+.btn-send:disabled{background:var(--bg4);cursor:not-allowed;}
+
+/* Plan review modal */
+#plan-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1100;align-items:center;justify-content:center;padding:20px;}
+#plan-overlay.open{display:flex;}
+.plan-modal{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;}
+.plan-modal-hd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--bg2);z-index:1;}
+.plan-modal-hd h2{font-size:15px;font-weight:800;color:var(--amber2);}
+.plan-modal-hd p{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:3px;}
+.plan-body{padding:20px 24px;}
+.plan-task-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.plan-task{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.pt-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.pt-desc{font-size:11px;color:var(--text2);font-family:var(--mono);line-height:1.5;margin-bottom:8px;}
+.pt-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.pt-agent{font-size:9px;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:var(--bg4);color:var(--text3);}
+.plan-modal-actions{display:flex;gap:10px;padding:0 24px 24px;}
+.btn-aprobar-plan{flex:1;background:var(--amber);color:#000;border:none;border-radius:9px;padding:13px;font-family:var(--font);font-size:13px;font-weight:800;letter-spacing:1px;cursor:pointer;transition:all .2s;}
+.btn-aprobar-plan:hover{background:var(--amber2);}
+.btn-rechazar-plan{background:none;border:1px solid var(--coral);color:var(--coral);border-radius:9px;padding:13px 18px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-rechazar-plan:hover{background:var(--coral3);}
+
+/* Utils */
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.loader{display:inline-block;width:10px;height:10px;border:2px solid var(--bg4);border-top-color:var(--amber);border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="setup-logo">🎮</div>
+  <div class="setup-title">GAME STUDIO</div>
+  <div class="setup-sub">AI PRODUCER · SISTEMA ORQUESTADO</div>
+  <div class="setup-card">
+    <h2>// CONFIGURAR ESTUDIO</h2>
+    <div class="field">
+      <label>ANTHROPIC API KEY <span style="color:var(--coral)">*</span></label>
+      <input type="password" id="in-anthropic" placeholder="sk-ant-api03-..." autocomplete="off">
+      <div class="hint">Requerida para todos los agentes. Obtenela en console.anthropic.com</div>
+    </div>
+    <div class="field">
+      <label>LEONARDO API KEY <span class="badge-opt">OPCIONAL</span></label>
+      <input type="password" id="in-leonardo" placeholder="Tu API key de Leonardo.ai" autocomplete="off">
+      <div class="hint">Para generación de assets visuales. Podés agregarla después.</div>
+    </div>
+    <div class="field">
+      <label>NOMBRE DEL PROYECTO</label>
+      <input type="text" id="in-proyecto" placeholder="Pixel Forest" value="Pixel Forest">
+    </div>
+    <button class="btn-start" onclick="iniciarApp()">▶ INICIAR ESTUDIO</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topnav">
+    <div class="topnav-logo">🎮</div>
+    <button class="nav-tab active" onclick="switchTab('producer')" id="tab-producer">⚙️ Producer</button>
+    <button class="nav-tab" onclick="switchTab('aprobaciones')" id="tab-aprobaciones">
+      ✅ Aprobaciones <span class="nav-badge" id="nav-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('historial')" id="tab-historial">📋 Historial</button>
+    <div class="nav-right">
+      <button class="btn-reunion" onclick="abrirReunion()">🤝 Reunión</button>
+      <button class="btn-settings" onclick="abrirConfig()" title="Configuración">⚙</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- SALA PRODUCER -->
+    <div id="sala-producer" class="active">
+      <div class="producer-top">
+        <!-- Producer card -->
+        <div class="producer-card">
+          <h3>// AI PRODUCER</h3>
+          <div class="producer-status-box">
+            <div class="producer-av">🧠</div>
+            <div class="producer-info">
+              <h2>Producer IA</h2>
+              <p id="producer-status-label">Esperando proyecto...</p>
+            </div>
+          </div>
+          <div class="producer-thinking idle" id="producer-thinking">Sin actividad</div>
+        </div>
+        <!-- Stats -->
+        <div class="producer-card">
+          <h3>// ESTADO DEL PROYECTO</h3>
+          <div class="stats-row">
+            <div class="stat"><div class="stat-val" id="stat-tareas">0</div><div class="stat-label">TAREAS</div></div>
+            <div class="stat"><div class="stat-val" id="stat-corriendo">0</div><div class="stat-label">EN CURSO</div></div>
+            <div class="stat"><div class="stat-val" id="stat-pendientes">0</div><div class="stat-label">PENDIENTES</div></div>
+            <div class="stat"><div class="stat-val" id="stat-completadas">0</div><div class="stat-label">COMPLETADAS</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload + launch -->
+      <div class="producer-card" style="margin-bottom:16px;">
+        <h3>// CÓDIGO DEL PROYECTO</h3>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept=".html,.js,.txt" onchange="cargarArchivo(this)">
+          <div style="font-size:28px;margin-bottom:6px">📁</div>
+          <h4 id="upload-title">Subir código del proyecto</h4>
+          <p id="upload-sub">Arrastrá o hacé clic · .html .js .txt</p>
+        </div>
+        <button class="btn-launch" id="btn-launch" onclick="lanzarAnalisis()" disabled>
+          <span>▶ LANZAR ANÁLISIS</span>
+        </button>
+      </div>
+
+      <!-- Pipeline de tareas -->
+      <div class="pipeline-section">
+        <h3>// PIPELINE DE TAREAS <span id="pipeline-count" style="font-size:10px;color:var(--text3);font-family:var(--mono)"></span></h3>
+        <div class="pipeline-cols">
+          <div class="pipeline-col">
+            <div class="pipeline-col-title">🟡 PENDIENTES <span id="col-pending-count">0</span></div>
+            <div id="col-pending"></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-title">🔵 EN CURSO <span id="col-running-count">0</span></div>
+            <div id="col-running"></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-title">🟣 VALIDANDO <span id="col-validating-count">0</span></div>
+            <div id="col-validating"></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-title">✅ COMPLETAS <span id="col-done-count">0</span></div>
+            <div id="col-done"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agentes -->
+      <div class="agentes-section">
+        <h3>// EQUIPO</h3>
+        <div class="agentes-grid" id="agentes-grid"></div>
+      </div>
+    </div>
+
+    <!-- SALA APROBACIONES -->
+    <div id="sala-aprobaciones">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <h1 style="font-size:17px;font-weight:800;">✅ Sala de Aprobaciones</h1>
+      </div>
+      <div class="aprob-list" id="aprob-list">
+        <div class="empty-state"><div class="ei">📬</div><h3>Sin propuestas pendientes</h3><p>El Producer te traerá propuestas<br>validadas para que decidas.</p></div>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div id="sala-historial">
+      <div style="margin-bottom:20px;"><h1 style="font-size:17px;font-weight:800;">📋 Historial</h1></div>
+      <div class="hist-list" id="hist-list">
+        <div class="empty-state"><div class="ei">🗂️</div><h3>Sin historial</h3><p>Tus decisiones aparecerán acá.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REUNION MODAL -->
+<div class="modal-overlay" id="reunion-overlay">
+  <div class="reunion-modal">
+    <div class="reunion-hd">
+      <div><h2>🤝 Sala de Reuniones</h2><p>Producer + Gerentes presentes</p></div>
+      <button class="btn-close" onclick="cerrarReunion()">✕</button>
+    </div>
+    <div class="reunion-asistentes" id="reunion-asistentes"></div>
+    <div class="reunion-chat" id="reunion-chat"></div>
+    <div class="reunion-input-area">
+      <textarea id="reunion-msg" placeholder="Preguntá, pedí novedades, tomá decisiones..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMsg();}"></textarea>
+      <button class="btn-send" id="btn-send" onclick="enviarMsg()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN REVIEW MODAL -->
+<div id="plan-overlay">
+  <div class="plan-modal">
+    <div class="plan-modal-hd">
+      <div>
+        <h2 id="plan-title">📋 Plan de tareas</h2>
+        <p id="plan-subtitle">El Producer necesita tu aprobación para continuar</p>
+      </div>
+    </div>
+    <div class="plan-body">
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:16px;line-height:1.6;" id="plan-desc"></div>
+      <div class="plan-task-list" id="plan-task-list"></div>
+    </div>
+    <div class="plan-modal-actions">
+      <button class="btn-aprobar-plan" id="btn-aprobar-plan">✅ APROBAR PLAN</button>
+      <button class="btn-rechazar-plan" id="btn-rechazar-plan">✗ RECHAZAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG MODAL -->
+<div class="modal-overlay" id="config-overlay">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:28px;width:100%;max-width:440px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h2 style="font-size:14px;font-weight:800;color:var(--amber);">⚙ Configuración</h2>
+      <button class="btn-close" onclick="cerrarConfig()">✕</button>
+    </div>
+    <div class="field">
+      <label>ANTHROPIC API KEY</label>
+      <input type="password" id="cfg-anthropic" placeholder="sk-ant-..." autocomplete="off">
+    </div>
+    <div class="field">
+      <label>LEONARDO API KEY <span class="badge-opt">OPCIONAL</span></label>
+      <input type="password" id="cfg-leonardo" placeholder="Tu API key" autocomplete="off">
+    </div>
+    <button class="btn-start" onclick="guardarConfig()" style="margin-top:4px;">GUARDAR</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// ESTADO GLOBAL
+// ══════════════════════════════════════════
+let CFG = { anthropic:'', leonardo:'', proyecto:'Pixel Forest' };
+let codigoProyecto = '';
+let tareas = [];          // pipeline de tareas
+let aprobaciones = [];    // pendientes para el CEO
+let historial = [];       // decisiones tomadas
+let reunionMsgs = [];
+let orquestando = false;
+let taskIdCounter = 0;
+
+// ══════════════════════════════════════════
+// DEFINICION DEL EQUIPO
+// ══════════════════════════════════════════
+const PRODUCER = {
+  id:'producer', name:'Producer IA', emoji:'🧠',
+  color:'var(--purple2)', bg:'var(--purple3)'
+};
+
+const AGENTES = [
+  { id:'game_director',   name:'Game Director',   emoji:'🎮', color:'var(--green)',  bg:'var(--green3)',  role:'GERENTE · DISEÑO',    tipo:'gerente' },
+  { id:'lead_programmer', name:'Lead Programmer',  emoji:'💻', color:'var(--blue2)',  bg:'var(--blue3)',   role:'GERENTE · CÓDIGO',    tipo:'gerente' },
+  { id:'art_director',    name:'Art Director',     emoji:'🎨', color:'var(--coral)',  bg:'var(--coral3)',  role:'GERENTE · ARTE',      tipo:'gerente' },
+  { id:'programmer',      name:'Programmer',       emoji:'🔧', color:'var(--blue2)',  bg:'var(--blue3)',   role:'OPERATIVO · CÓDIGO',  tipo:'operativo' },
+  { id:'qa_tester',       name:'QA Tester',        emoji:'🐛', color:'var(--amber)',  bg:'var(--amber3)',  role:'OPERATIVO · TESTING', tipo:'operativo' },
+  { id:'analyst',         name:'Analyst',          emoji:'📊', color:'var(--teal)',   bg:'var(--teal3)',   role:'OPERATIVO · ANÁLISIS',tipo:'operativo' },
+];
+
+const TODOS = [PRODUCER, ...AGENTES];
+let estadoAgentes = {};
+AGENTES.forEach(a => estadoAgentes[a.id] = { status:'idle', log:[], tarea:null });
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+function iniciarApp() {
+  const ak = document.getElementById('in-anthropic').value.trim();
+  if (!ak) { alert('Necesitás la Anthropic API key.'); return; }
+  CFG.anthropic = ak;
+  CFG.leonardo = document.getElementById('in-leonardo').value.trim();
+  CFG.proyecto = document.getElementById('in-proyecto').value.trim() || 'Pixel Forest';
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  renderAgentes();
+}
+
+function abrirConfig() {
+  document.getElementById('cfg-anthropic').value = CFG.anthropic;
+  document.getElementById('cfg-leonardo').value = CFG.leonardo;
+  document.getElementById('config-overlay').classList.add('open');
+}
+function cerrarConfig() { document.getElementById('config-overlay').classList.remove('open'); }
+function guardarConfig() {
+  CFG.anthropic = document.getElementById('cfg-anthropic').value.trim() || CFG.anthropic;
+  CFG.leonardo = document.getElementById('cfg-leonardo').value.trim();
+  cerrarConfig();
+}
+
+// ══════════════════════════════════════════
+// NAVEGACIÓN
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  ['producer','aprobaciones','historial'].forEach(t => {
+    document.getElementById(`sala-${t}`).classList.remove('active');
+    document.getElementById(`tab-${t}`).classList.remove('active');
+  });
+  document.getElementById(`sala-${tab}`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// ARCHIVO
+// ══════════════════════════════════════════
+function cargarArchivo(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    codigoProyecto = e.target.result;
+    document.getElementById('upload-title').textContent = '✅ ' + file.name;
+    document.getElementById('upload-sub').textContent = `${(codigoProyecto.length/1024).toFixed(1)} KB cargado`;
+    document.getElementById('upload-zone').classList.add('loaded');
+    document.getElementById('btn-launch').disabled = false;
+    setProducerStatus('Código cargado — listo para analizar');
+  };
+  reader.readAsText(file);
+}
+
+const uz = document.getElementById('upload-zone');
+uz.addEventListener('dragover', e=>{e.preventDefault();uz.style.borderColor='var(--amber)';});
+uz.addEventListener('dragleave', ()=>{uz.style.borderColor='';});
+uz.addEventListener('drop', e=>{
+  e.preventDefault(); uz.style.borderColor='';
+  const fi = document.getElementById('file-input');
+  const dt = new DataTransfer(); dt.items.add(e.dataTransfer.files[0]); fi.files = dt.files;
+  cargarArchivo(fi);
+});
+
+// ══════════════════════════════════════════
+// PRODUCER: ORQUESTACIÓN PRINCIPAL
+// ══════════════════════════════════════════
+async function lanzarAnalisis() {
+  if (orquestando || !codigoProyecto) return;
+  orquestando = true;
+  tareas = []; aprobaciones = [];
+  document.getElementById('btn-launch').disabled = true;
+  document.getElementById('btn-launch').innerHTML = '<span class="loader"></span> &nbsp;Producer analizando...';
+  AGENTES.forEach(a => estadoAgentes[a.id] = { status:'idle', log:[], tarea:null });
+  renderAgentes(); renderPipeline(); renderAprobaciones();
+
+  setProducerThinking('Analizando el proyecto y planificando tareas...');
+  setProducerStatus('Armando plan de trabajo');
+
+  // PASO 1: Producer analiza y genera el plan de tareas
+  const planJSON = await producerGenerarPlan();
+  if (!planJSON) {
+    setProducerThinking('Error generando el plan. Intentá de nuevo.');
+    orquestando = false;
+    document.getElementById('btn-launch').disabled = false;
+    document.getElementById('btn-launch').innerHTML = '<span>▶ LANZAR ANÁLISIS</span>';
+    return;
+  }
+
+  // PASO 2: Clasificar tareas — chicas van directo, grandes piden aprobación
+  const tareasChicas = planJSON.tareas.filter(t => t.tamano === 'chica');
+  const tareasGrandes = planJSON.tareas.filter(t => t.tamano === 'grande');
+
+  // Agregar al pipeline
+  planJSON.tareas.forEach(t => {
+    const tarea = {
+      id: ++taskIdCounter,
+      titulo: t.titulo,
+      descripcion: t.descripcion,
+      tamano: t.tamano,
+      agente: t.agente,
+      status: 'pending',
+      resultado: null,
+      requiereAprobacion: t.tamano === 'grande'
+    };
+    tareas.push(tarea);
+  });
+
+  renderPipeline(); renderStats();
+  setProducerStatus(`Plan listo: ${tareasChicas.length} tareas chicas, ${tareasGrandes.length} grandes`);
+
+  // PASO 3: Tareas grandes → pedir aprobación del CEO
+  if (tareasGrandes.length > 0) {
+    setProducerThinking(`Hay ${tareasGrandes.length} tarea(s) grande(s) — esperando tu aprobación...`);
+    const aprobadas = await pedirAprobacionPlan(planJSON, tareasGrandes);
+    if (!aprobadas) {
+      // Rechazadas — solo ejecutar chicas
+      tareas.filter(t => t.tamano === 'grande').forEach(t => t.status = 'rejected');
+      renderPipeline();
+    }
+  }
+
+  // PASO 4: Ejecutar tareas aprobadas/chicas en paralelo controlado
+  setProducerThinking('Asignando tareas al equipo...');
+  await ejecutarTareas();
+
+  setProducerThinking('idle');
+  setProducerStatus('Análisis completado');
+  document.getElementById('btn-launch').disabled = false;
+  document.getElementById('btn-launch').innerHTML = '<span>▶ VOLVER A ANALIZAR</span>';
+  orquestando = false;
+  actualizarBadge();
+}
+
+async function producerGenerarPlan() {
+  const codigo = codigoProyecto.substring(0, 14000);
+  const prompt = `Sos el Producer IA de un estudio de videojuegos indie. Analizás el código de "${CFG.proyecto}" y generás un plan de trabajo detallado.
+
+Tu trabajo:
+1. Identificar qué necesita el proyecto (bugs, features, arte, balance, etc)
+2. Dividir el trabajo en tareas específicas
+3. Asignar cada tarea al agente más apropiado
+4. Clasificar cada tarea como "chica" (un solo sistema, < 2hs trabajo) o "grande" (múltiples sistemas, cambio de arquitectura o mecánica core)
+
+Agentes disponibles: game_director (diseño/mecánicas), lead_programmer (arquitectura/código complejo), art_director (arte/visual/assets), programmer (features/código), qa_tester (bugs/testing), analyst (balance/métricas)
+
+Respondé SOLO con JSON válido, sin texto adicional:
+{
+  "resumen": "descripción breve del estado del proyecto",
+  "tareas": [
+    {
+      "titulo": "título corto de la tarea",
+      "descripcion": "qué hay que hacer exactamente y por qué",
+      "agente": "id_del_agente",
+      "tamano": "chica|grande",
+      "razon_tamano": "por qué es chica o grande"
+    }
+  ]
+}
+
+Generá entre 4 y 8 tareas concretas y accionables.`;
+
+  try {
+    const resp = await callClaude([{ role:'user', content: `Código del proyecto:\n\`\`\`\n${codigo}\n\`\`\`` }], prompt, 2000);
+    return parseJSON(resp);
+  } catch(e) {
+    console.error('Error producer plan:', e);
+    return null;
+  }
+}
+
+function pedirAprobacionPlan(plan, tareasGrandes) {
+  return new Promise(resolve => {
+    // Mostrar modal de plan
+    document.getElementById('plan-title').textContent = `📋 Plan del Producer — ${CFG.proyecto}`;
+    document.getElementById('plan-subtitle').textContent = `${tareasGrandes.length} tarea(s) grande(s) necesitan tu aprobación`;
+    document.getElementById('plan-desc').textContent = plan.resumen || '';
+
+    const list = document.getElementById('plan-task-list');
+    list.innerHTML = '';
+    tareasGrandes.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'plan-task';
+      const ag = AGENTES.find(a => a.id === t.agente);
+      div.innerHTML = `
+        <div class="pt-title">${esc(t.titulo)} <span class="aprob-badge badge-alta" style="font-size:9px;padding:2px 7px;border-radius:20px;">GRANDE</span></div>
+        <div class="pt-desc">${esc(t.descripcion)}</div>
+        <div class="pt-meta">
+          <span class="pt-agent">${ag ? ag.emoji+' '+ag.name : t.agente}</span>
+          <span class="pt-agent">${esc(t.razon_tamano||'')}</span>
+        </div>`;
+      list.appendChild(div);
+    });
+
+    document.getElementById('plan-overlay').classList.add('open');
+    document.getElementById('btn-aprobar-plan').onclick = () => {
+      document.getElementById('plan-overlay').classList.remove('open');
+      // Marcar tareas grandes como approved
+      tareas.filter(t => t.tamano === 'grande').forEach(t => t.status = 'pending');
+      renderPipeline();
+      resolve(true);
+    };
+    document.getElementById('btn-rechazar-plan').onclick = () => {
+      document.getElementById('plan-overlay').classList.remove('open');
+      resolve(false);
+    };
+  });
+}
+
+async function ejecutarTareas() {
+  const pendientes = tareas.filter(t => t.status === 'pending');
+  if (pendientes.length === 0) return;
+
+  setProducerThinking(`Ejecutando ${pendientes.length} tareas en paralelo...`);
+
+  // Ejecutar en paralelo pero con máx 3 simultáneas
+  const MAX_CONCURRENT = 3;
+  const queue = [...pendientes];
+  const running = [];
+
+  while (queue.length > 0 || running.length > 0) {
+    while (running.length < MAX_CONCURRENT && queue.length > 0) {
+      const tarea = queue.shift();
+      const promise = ejecutarTarea(tarea).then(() => {
+        running.splice(running.indexOf(promise), 1);
+      });
+      running.push(promise);
+    }
+    if (running.length > 0) await Promise.race(running);
+  }
+}
+
+async function ejecutarTarea(tarea) {
+  const agente = AGENTES.find(a => a.id === tarea.agente) || AGENTES[0];
+  tarea.status = 'running';
+  estadoAgentes[agente.id].status = 'busy';
+  estadoAgentes[agente.id].tarea = tarea.titulo;
+  addLog(agente.id, `→ Iniciando: ${tarea.titulo}`, 'new');
+  renderPipeline(); renderAgentes(); renderStats();
+
+  await sleep(500 + Math.random()*1000);
+  addLog(agente.id, `→ Trabajando en la tarea...`, 'new');
+
+  try {
+    const resultado = await ejecutarConAgente(agente, tarea);
+    tarea.status = 'validating';
+    estadoAgentes[agente.id].status = 'busy';
+    addLog(agente.id, `✓ Tarea completada, Producer validando...`, 'ok');
+    renderPipeline(); renderAgentes();
+
+    // Producer valida el resultado
+    await sleep(800);
+    const validacion = await producerValidar(tarea, resultado);
+
+    if (validacion && validacion.aprobado) {
+      tarea.status = 'done';
+      tarea.resultado = resultado;
+      estadoAgentes[agente.id].status = 'done';
+      estadoAgentes[agente.id].tarea = null;
+      addLog(agente.id, `✅ Producer aprobó el resultado`, 'ok');
+
+      // Agregar a aprobaciones para el CEO
+      aprobaciones.push({
+        id: Date.now() + Math.random(),
+        tarea,
+        agente,
+        resultado,
+        validacion,
+        decision: null,
+        fecha: new Date().toLocaleString('es-AR')
+      });
+      renderAprobaciones();
+      actualizarBadge();
+    } else {
+      tarea.status = 'pending';
+      estadoAgentes[agente.id].status = 'idle';
+      estadoAgentes[agente.id].tarea = null;
+      addLog(agente.id, `⚠ Producer solicitó revisión`, 'find');
+    }
+  } catch(e) {
+    tarea.status = 'pending';
+    estadoAgentes[agente.id].status = 'idle';
+    estadoAgentes[agente.id].tarea = null;
+    addLog(agente.id, `✗ Error: ${e.message}`, 'err');
+  }
+
+  renderPipeline(); renderAgentes(); renderStats();
+}
+
+async function ejecutarConAgente(agente, tarea) {
+  const systemPrompts = {
+    game_director: `Sos el Game Director de "${CFG.proyecto}". Ejecutás tareas de diseño y gameplay. Respondé en español con análisis profundo y propuestas concretas.`,
+    lead_programmer: `Sos el Lead Programmer de "${CFG.proyecto}". Ejecutás tareas técnicas y de arquitectura. Incluí código JavaScript real. Respondé en español.`,
+    art_director: `Sos el Art Director de "${CFG.proyecto}". Ejecutás tareas visuales y de arte. Si necesitás generar una imagen, incluí el prompt detallado para Leonardo AI. Respondé en español.`,
+    programmer: `Sos el Programmer de "${CFG.proyecto}". Implementás features. Incluí código JavaScript funcional y listo para usar. Respondé en español.`,
+    qa_tester: `Sos el QA Tester de "${CFG.proyecto}". Encontrás bugs y problemas. Describí cada issue con pasos para reproducirlo y el fix. Respondé en español.`,
+    analyst: `Sos el Analyst de "${CFG.proyecto}". Analizás balance, métricas y progresión. Respondé en español con datos y recomendaciones concretas.`,
+  };
+
+  const codigo = codigoProyecto.substring(0, 10000);
+  const resp = await callClaude([{
+    role: 'user',
+    content: `Tarea asignada por el Producer: "${tarea.titulo}"\n\nDescripción: ${tarea.descripcion}\n\nCódigo del proyecto:\n\`\`\`\n${codigo}\n\`\`\`\n\nEjecutá esta tarea. Sé específico, incluí código o assets concretos cuando corresponda.`
+  }], systemPrompts[agente.id] || systemPrompts.programmer, 1200);
+
+  return resp;
+}
+
+async function producerValidar(tarea, resultado) {
+  const prompt = `Sos el Producer IA de "${CFG.proyecto}". Validás el resultado de una tarea antes de presentársela al CEO.
+
+Tarea: "${tarea.titulo}"
+Descripción: ${tarea.descripcion}
+Resultado del agente: ${resultado.substring(0, 1500)}
+
+Evaluá si el resultado es completo, útil, y coherente con el proyecto.
+Respondé SOLO JSON:
+{
+  "aprobado": true|false,
+  "resumen_para_ceo": "1-2 oraciones explicando el resultado al CEO",
+  "impacto": "alto|medio|bajo",
+  "notas": "notas internas del Producer"
+}`;
+
+  try {
+    const resp = await callClaude([{ role:'user', content: prompt }], 'Sos el Producer IA. Validás resultados del equipo. Solo respondés JSON.', 400);
+    return parseJSON(resp);
+  } catch(e) {
+    return { aprobado: true, resumen_para_ceo: resultado.substring(0, 200), impacto: 'medio', notas: '' };
+  }
+}
+
+// ══════════════════════════════════════════
+// API CLAUDE
+// ══════════════════════════════════════════
+async function callClaude(messages, system, maxTokens=1000) {
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: maxTokens,
+    messages
+  };
+  if (system) body.system = system;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CFG.anthropic,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-client-side-allow-unsafe': 'true'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(()=>({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.content?.[0]?.text || '';
+}
+
+function parseJSON(text) {
+  try { const m = text.match(/\{[\s\S]*\}/); if(m) return JSON.parse(m[0]); } catch(e){}
+  return null;
+}
+
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function setProducerStatus(txt) { document.getElementById('producer-status-label').textContent = txt; }
+function setProducerThinking(txt) {
+  const el = document.getElementById('producer-thinking');
+  if (txt === 'idle') { el.textContent = 'Sin actividad'; el.classList.add('idle'); }
+  else { el.textContent = '▶ ' + txt; el.classList.remove('idle'); }
+}
+
+function addLog(id, text, type='new') {
+  estadoAgentes[id].log.push({ text, type });
+  if (estadoAgentes[id].log.length > 5) estadoAgentes[id].log.shift();
+}
+
+function renderAgentes() {
+  const grid = document.getElementById('agentes-grid');
+  grid.innerHTML = '';
+  AGENTES.forEach(ag => {
+    const st = estadoAgentes[ag.id];
+    const logHtml = st.log.slice(-3).map(l=>`<div class="log-${l.type}">${esc(l.text)}</div>`).join('') || '<div>Esperando tarea...</div>';
+    const card = document.createElement('div');
+    card.className = 'agente-card';
+    card.innerHTML = `
+      <div class="agente-header">
+        <div class="agente-av" style="background:${ag.bg}">${ag.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div class="agente-name">${ag.name}</div>
+          <div class="agente-role">${ag.role}</div>
+        </div>
+        <div class="agente-st st-${st.status}">
+          <div class="st-dot"></div>
+          <span>${st.status==='idle'?'Libre':st.status==='busy'?'Trabajando':'Listo'}</span>
+        </div>
+      </div>
+      <div class="agente-body">
+        <div class="agente-log">${logHtml}</div>
+      </div>
+      ${st.tarea ? `<div class="agente-task"><span class="agente-task-label">→ </span><span class="agente-task-name">${esc(st.tarea)}</span></div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderPipeline() {
+  const cols = { pending:'pending', running:'running', validating:'validating', done:'done' };
+  Object.entries(cols).forEach(([status, colId]) => {
+    const col = document.getElementById(`col-${colId}`);
+    const count = document.getElementById(`col-${colId}-count`);
+    const items = tareas.filter(t => t.status === status);
+    count.textContent = items.length;
+    col.innerHTML = '';
+    items.forEach(t => {
+      const ag = AGENTES.find(a => a.id === t.agente);
+      const chip = document.createElement('div');
+      chip.className = `task-chip status-${t.status}`;
+      chip.innerHTML = `
+        <span class="tc-size ${t.tamano==='chica'?'size-chica':'size-grande'}">${t.tamano}</span>
+        <div class="tc-title">${esc(t.titulo)}</div>
+        <div class="tc-agent">${ag?ag.emoji+' '+ag.name:t.agente}</div>`;
+      col.appendChild(chip);
+    });
+  });
+
+  // Also show plan-review and rejected
+  const rejected = tareas.filter(t => t.status === 'rejected');
+  if (rejected.length > 0) {
+    const col = document.getElementById('col-done');
+    rejected.forEach(t => {
+      const ag = AGENTES.find(a => a.id === t.agente);
+      const chip = document.createElement('div');
+      chip.className = 'task-chip status-rejected';
+      chip.innerHTML = `<div class="tc-title">${esc(t.titulo)}</div><div class="tc-agent">✗ Rechazada · ${ag?ag.name:t.agente}</div>`;
+      col.appendChild(chip);
+    });
+  }
+}
+
+function renderStats() {
+  document.getElementById('stat-tareas').textContent = tareas.length;
+  document.getElementById('stat-corriendo').textContent = tareas.filter(t=>t.status==='running'||t.status==='validating').length;
+  document.getElementById('stat-pendientes').textContent = aprobaciones.filter(a=>!a.decision).length;
+  document.getElementById('stat-completadas').textContent = tareas.filter(t=>t.status==='done').length;
+}
+
+function renderAprobaciones() {
+  const list = document.getElementById('aprob-list');
+  const pend = aprobaciones.filter(a => !a.decision);
+  if (pend.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="ei">📬</div><h3>Sin propuestas pendientes</h3><p>El Producer valida cada resultado<br>antes de traértelo acá.</p></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  pend.forEach(ap => {
+    const card = document.createElement('div');
+    card.className = 'aprob-card';
+    card.id = `ap-${ap.id}`;
+    const imp = ap.validacion?.impacto || 'medio';
+    const badgeImp = `badge-${imp}`;
+    const res = ap.resultado || '';
+    const resCorto = res.length > 600 ? res.substring(0, 600) + '\n[...]' : res;
+    card.innerHTML = `
+      <div class="aprob-head">
+        <div class="aprob-icon" style="background:${ap.agente.bg}">${ap.agente.emoji}</div>
+        <div class="aprob-meta">
+          <div class="aprob-title">${esc(ap.tarea.titulo)}</div>
+          <div class="aprob-from">${ap.agente.name} → validado por Producer</div>
+        </div>
+        <span class="aprob-badge ${badgeImp}">${imp.toUpperCase()}</span>
+      </div>
+      <div class="aprob-body">
+        <div class="aprob-desc">${esc(ap.validacion?.resumen_para_ceo || ap.tarea.descripcion)}</div>
+        ${res.trim() ? `<div class="aprob-code">${esc(resCorto)}</div>` : ''}
+      </div>
+      <div class="aprob-actions">
+        <button class="btn-ok" onclick="decidir('${ap.id}','aprobado')">✅ APROBAR</button>
+        <button class="btn-no" onclick="decidir('${ap.id}','rechazado')">✗ RECHAZAR</button>
+      </div>`;
+    list.appendChild(card);
+  });
+  renderStats();
+}
+
+function decidir(id, decision) {
+  const ap = aprobaciones.find(a => String(a.id) === String(id));
+  if (!ap) return;
+  ap.decision = decision;
+  ap.fechaDecision = new Date().toLocaleString('es-AR');
+  historial.unshift(ap);
+  const card = document.getElementById(`ap-${id}`);
+  if (card) { card.style.opacity='0.4'; card.style.transition='opacity .3s'; setTimeout(()=>card.remove(),300); }
+  renderHistorial(); actualizarBadge();
+  setTimeout(()=>{
+    const pend = aprobaciones.filter(a=>!a.decision);
+    if(pend.length===0) renderAprobaciones();
+  },350);
+}
+
+function actualizarBadge() {
+  const n = aprobaciones.filter(a=>!a.decision).length;
+  const b = document.getElementById('nav-badge');
+  b.style.display = n>0 ? 'inline' : 'none';
+  b.textContent = n;
+  renderStats();
+}
+
+function renderHistorial() {
+  const list = document.getElementById('hist-list');
+  if (historial.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="ei">🗂️</div><h3>Sin historial</h3><p>Tus decisiones aparecerán acá.</p></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  historial.forEach(ap => {
+    const item = document.createElement('div');
+    item.className = 'hist-item';
+    item.innerHTML = `
+      <div class="hist-av">${ap.agente.emoji}</div>
+      <div class="hist-content">
+        <div class="hist-title">${esc(ap.tarea.titulo)}</div>
+        <div class="hist-meta">${ap.agente.name} · ${ap.fechaDecision}</div>
+      </div>
+      <span class="tag ${ap.decision==='aprobado'?'tag-ok':'tag-no'}">${ap.decision==='aprobado'?'✅ Aprobado':'✗ Rechazado'}</span>`;
+    list.appendChild(item);
+  });
+}
+
+// ══════════════════════════════════════════
+// SALA DE REUNIONES
+// ══════════════════════════════════════════
+const GERENTES = AGENTES.filter(a => a.tipo === 'gerente');
+
+function abrirReunion() {
+  document.getElementById('reunion-overlay').classList.add('open');
+  const div = document.getElementById('reunion-asistentes');
+  div.innerHTML = [PRODUCER, ...GERENTES].map(ag=>`
+    <div class="asistente-chip">
+      <span class="ac-av">${ag.emoji}</span>
+      <div><div class="ac-name">${ag.name}</div><div class="ac-role">${ag.role||'PRODUCER'}</div></div>
+    </div>`).join('') + `<div class="asistente-chip"><span class="ac-av">👔</span><div><div class="ac-name">Vos (CEO)</div><div class="ac-role">DIRECTOR</div></div></div>`;
+
+  if (reunionMsgs.length === 0) {
+    addReunionMsg('sys', null, 'Sala de reuniones abierta');
+    setTimeout(() => addBienvenidaProducer(), 600);
+  }
+  renderReunionChat();
+}
+
+function addBienvenidaProducer() {
+  const total = tareas.length;
+  const pend = aprobaciones.filter(a=>!a.decision).length;
+  const comp = tareas.filter(t=>t.status==='done').length;
+  let msg = '';
+  if (!codigoProyecto) {
+    msg = `Bienvenido CEO. Todavía no hay código cargado para "${CFG.proyecto}". Subilo en la sala Producer y lanzá el análisis.`;
+  } else if (total === 0) {
+    msg = `Bienvenido. El código de "${CFG.proyecto}" está listo. Todavía no lancé el análisis — cuando lo hagas el equipo empieza a trabajar.`;
+  } else {
+    msg = `Bienvenido CEO. Estado de "${CFG.proyecto}": ${total} tareas en pipeline, ${comp} completadas, ${pend} esperando tu decisión. ${pend > 0 ? 'Te recomiendo revisar la sala de aprobaciones.' : '¿Querés lanzar un nuevo análisis o discutir algo?'}`;
+  }
+  addReunionMsg('agente', 'producer', msg);
+  renderReunionChat();
+}
+
+function cerrarReunion() { document.getElementById('reunion-overlay').classList.remove('open'); }
+
+function addReunionMsg(type, agenteId, texto) {
+  reunionMsgs.push({ type, agenteId, texto });
+}
+
+function renderReunionChat() {
+  const chat = document.getElementById('reunion-chat');
+  chat.innerHTML = '';
+  reunionMsgs.forEach(m => {
+    const div = document.createElement('div');
+    if (m.type === 'sys') {
+      div.className = 'msg sys';
+      div.innerHTML = `<div class="mb">${esc(m.texto)}</div>`;
+    } else if (m.type === 'agente') {
+      const ag = TODOS.find(a => a.id === m.agenteId);
+      div.className = 'msg';
+      div.innerHTML = `
+        <div class="msg-av" style="background:${ag?.bg||'var(--bg4)'}">${ag?.emoji||'🤖'}</div>
+        <div class="msg-inner">
+          <div class="msg-name">${ag?.name||m.agenteId}</div>
+          <div class="mb">${esc(m.texto)}</div>
+        </div>`;
+    } else if (m.type === 'user') {
+      div.className = 'msg user';
+      div.innerHTML = `
+        <div class="msg-inner" style="text-align:right">
+          <div class="msg-name" style="text-align:right">Vos (CEO)</div>
+          <div class="mb">${esc(m.texto)}</div>
+        </div>
+        <div class="msg-av" style="background:var(--amber3)">👔</div>`;
+    } else if (m.type === 'typing') {
+      const ag = TODOS.find(a => a.id === m.agenteId);
+      div.className = 'msg typing';
+      div.id = 'typing-bubble';
+      div.innerHTML = `
+        <div class="msg-av" style="background:${ag?.bg||'var(--bg4)'}">${ag?.emoji||'🤖'}</div>
+        <div class="msg-inner">
+          <div class="msg-name">${ag?.name||m.agenteId}</div>
+          <div class="mb"><span class="typing-dots"><span></span><span></span><span></span></span></div>
+        </div>`;
+    }
+    chat.appendChild(div);
+  });
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function enviarMsg() {
+  const ta = document.getElementById('reunion-msg');
+  const texto = ta.value.trim();
+  if (!texto) return;
+  ta.value = '';
+  document.getElementById('btn-send').disabled = true;
+  addReunionMsg('user', null, texto);
+  renderReunionChat();
+
+  // Elegir quién responde
+  const responder = elegirRespondedor(texto);
+  addReunionMsg('typing', responder.id, '');
+  renderReunionChat();
+
+  const ctx = `Sos ${responder.name} en una reunión con el CEO de "${CFG.proyecto}".
+Estado actual: ${tareas.length} tareas, ${tareas.filter(t=>t.status==='done').length} completadas, ${aprobaciones.filter(a=>!a.decision).length} esperando aprobación.
+Sé directo, útil y breve. Respondé en español. No más de 3 oraciones.`;
+
+  const histReunion = reunionMsgs
+    .filter(m=>m.type==='user'||m.type==='agente')
+    .slice(-6)
+    .map(m=>({ role: m.type==='user'?'user':'assistant', content: m.tipo==='user'?m.texto:`[${m.agenteId}]: ${m.texto}` }));
+
+  if (!histReunion.length || histReunion[histReunion.length-1].role!=='user') {
+    histReunion.push({ role:'user', content: texto });
+  }
+
+  try {
+    const resp = await callClaude(histReunion, ctx, 400);
+    const ti = reunionMsgs.findIndex(m=>m.type==='typing');
+    if (ti!==-1) reunionMsgs.splice(ti,1);
+    addReunionMsg('agente', responder.id, resp);
+  } catch(e) {
+    const ti = reunionMsgs.findIndex(m=>m.type==='typing');
+    if (ti!==-1) reunionMsgs.splice(ti,1);
+    addReunionMsg('agente', responder.id, `Error: ${e.message}`);
+  }
+
+  renderReunionChat();
+  document.getElementById('btn-send').disabled = false;
+  document.getElementById('reunion-msg').focus();
+}
+
+function elegirRespondedor(texto) {
+  const t = texto.toLowerCase();
+  if (t.includes('bug')||t.includes('código')||t.includes('error')||t.includes('técn')) return AGENTES.find(a=>a.id==='lead_programmer');
+  if (t.includes('art')||t.includes('visual')||t.includes('imagen')||t.includes('sprite')) return AGENTES.find(a=>a.id==='art_director');
+  if (t.includes('mecán')||t.includes('diseño')||t.includes('juego')||t.includes('gameplay')) return AGENTES.find(a=>a.id==='game_director');
+  return PRODUCER; // Producer responde por defecto
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    document.getElementById('reunion-overlay').classList.remove('open');
+    document.getElementById('config-overlay').classList.remove('open');
+    document.getElementById('plan-overlay').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
